@@ -1,0 +1,15 @@
+{
+  "name": "employee_manager_sql",
+  "version": "1.0.0",
+  "description": "This is the homework for week 12 of the web dev course.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "inquirer": "^8.2.4"
+  }
+}
