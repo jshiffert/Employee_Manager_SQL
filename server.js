@@ -1,6 +1,8 @@
 const express = require('express');
 const mysql = require('mysql2');
 require('dotenv').config();
+const Init = require('./public/index')
+const init = new Init();
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -18,7 +20,6 @@ const db = mysql.createConnection(
     console.log(`Connected to the employee_db database.`)
 );
 
-
 app.use((req, res) => {
     res.status(404).end();
 });
@@ -26,3 +27,5 @@ app.use((req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+init.init();
