@@ -84,6 +84,44 @@ function all_employee() {
     });
 };
 
+function addDepartment(answer) {
+    db.execute('INSERT INTO department (dep_name) VALUES (?)',
+            [answer]
+        , function (err, results) {
+            console.log(answer + "has been added to departments")
+        }
+    );
+};
+
+function addRole(answer) {
+    db.execute('INSERT INTO e_role (title, salary, department_id) VALUES (?,?, (SELECT id FROM department WHERE dep_name = ?))',
+            [answer.rolename, answer.rolesalary, answer.roledepartment]
+        , function (err, results) {
+            console.log(answer.rolename + "has been added to roles")
+        }
+    );
+};
+
+function addEmployee(answer) {
+    db.execute("INSERT INTO employee (first_name, last_name, role_id, manager_id) "
+                + "VALUES (?,?,(SELECT id FROM e_role WHERE title = ?), "
+                + "(SELECT p.id FROM (SELECT id FROM employee WHERE CONCAT(first_name, ' ', last_name) = ?) AS p))",
+            [answer.employeefname, answer.employeelname, answer.employeerole, answer.employeemanager],
+        function (err, results) {
+            console.log(answer.employeefname +' ' + answer.employeelname + ' has been added to employees')
+        }
+    )
+}
+
+function updateRole(answer) {
+    db.execute("UPDATE employee SET role_id = (SELECT id from e_role WHERE title = ?) "
+            + "WHERE CONCAT(first_name, ' ', last_name) = ?",
+            [answer.updaterole, answer.updateemployee],
+        function (err, results) {
+            console.log('Updated ' +answer.updateemployee+`'s role`)
+        }
+    )
+}
 
 app.use((req, res) => {
     res.status(404).end();
@@ -121,7 +159,76 @@ const prompt1 = async () => {
                 'View all employees', 'Add a department',
                 'Add a role', 'Add an employee',
                 'Update an employee role'],
-        }
+        },
+        {
+            when: (response) => response.start === 'Add a department',
+            type: 'input',
+            name: "department",
+            message: 'Enter the name of the department you wish to add: '
+        },
+        {
+            when: (response) => response.start === 'Add a role',
+            type: 'input',
+            name: "rolename",
+            message: 'Enter the name of the role you wish to add: '
+        },
+        {
+            when: (response) => response.rolename,
+            type: 'input',
+            name: "rolesalary",
+            message: 'Enter the salary of the role you wish to add: '
+        },
+        {
+            when: (response) => response.rolesalary,
+            type: 'list',
+            name: "roledepartment",
+            message: 'Enter the department of the role you wish to add: ',
+            choices: ['Sales','Engineering','Finance','Legal']
+        },
+        {
+            when: (response) => response.start === 'Add an employee',
+            type: 'input',
+            name: "employeefname",
+            message: 'Enter the first name of the employee you wish to add: '
+        },
+        {
+            when: (response) => response.employeefname,
+            type: 'input',
+            name: "employeelname",
+            message: 'Enter the last name of the employee you wish to add: '
+        },
+        {
+            when: (response) => response.employeelname,
+            type: 'list',
+            name: "employeerole",
+            message: 'Enter the role of the employee you wish to add: ',
+            choices: ['Sales Lead', 'Salesperson', 'Lead Engineer', 'Software Engineer',
+                    'Account Manager', 'Accounant', 'Legal Team Lead', 'Lawyer']
+        },
+        {
+            when: (response) => response.employeerole,
+            type: 'list',
+            name: "employeemanager",
+            message: 'Enter the manager of the employee you wish to add: ',
+            choices: ['None', 'John Doe', 'Mike Chan', 'Ashley Rodriguez',
+                    'Kevin Tupik', 'Kunal Singh', 'Malia Brown', 'Sara Lourd', 'Tom Allen']
+        },
+        {
+            when: (response) => response.start === "Update an employee role",
+            type: 'list',
+            name: "updateemployee",
+            message: 'Enter the employee whose role you wish to update ',
+            choices: ['John Doe', 'Mike Chan', 'Ashley Rodriguez',
+                    'Kevin Tupik', 'Kunal Singh', 'Malia Brown', 'Sara Lourd', 'Tom Allen']
+        },
+        {
+            when: (response) => response.updateemployee,
+            type: 'list',
+            name: "updaterole",
+            message: 'Enter the new role of the employee you wish to update ',
+            choices: ['Sales Lead', 'Salesperson', 'Lead Engineer', 'Software Engineer',
+            'Account Manager', 'Accounant', 'Legal Team Lead', 'Lawyer']
+        },
     ];
     return inquirer.prompt(startQ);
 }
@@ -138,9 +245,18 @@ const main = async () => {
                 all_role();
             }  else if (answer.start == "View all employees") {
                 all_employee();
-            } 
+            } else if (answer.start == "Add a department") {
+                addDepartment(answer.department);
+            } else if (answer.start == "Add a role") {
+                addRole(answer);
+            } else if (answer.start == "Add an employee") {
+                addEmployee(answer);
+            } else if (answer.start == "Update an employee role") {
+                updateRole(answer);
+            }
         })
     }
 }
+
 
 main();
